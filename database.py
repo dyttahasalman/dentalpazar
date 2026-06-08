@@ -8,6 +8,7 @@ import psycopg2
 import psycopg2.extras
 import pandas as pd
 from datetime import datetime
+import streamlit as st
 
 # Streamlit Cloud'da st.secrets, lokalde environment variable
 def _get_dsn():
@@ -18,10 +19,25 @@ def _get_dsn():
         return os.environ.get("DATABASE_URL", "")
 
 
-def get_connection():
+@st.cache_resource
+def _get_pool():
+    """Uygulama basina tek sefer baglanti olustur, yeniden kullan."""
+    import streamlit as st
     dsn = _get_dsn()
     conn = psycopg2.connect(dsn, sslmode="require")
     conn.autocommit = False
+    return conn
+
+
+def get_connection():
+    """Pooled baglanti doner; kopuksa yeniden baglanir."""
+    import streamlit as st
+    conn = _get_pool()
+    try:
+        conn.cursor().execute("SELECT 1")
+    except Exception:
+        st.cache_resource.clear()
+        conn = _get_pool()
     return conn
 
 
@@ -88,21 +104,21 @@ def get_maliyetler():
     return df
 
 
+@st.cache_data(ttl=300)
 def get_maliyet_map():
     conn = get_connection()
     c = conn.cursor()
     c.execute("SELECT barkod, maliyet FROM urun_maliyetleri")
     rows = c.fetchall()
-    conn.close()
     return {r[0]: r[1] for r in rows}
 
 
+@st.cache_data(ttl=300)
 def get_marka_map():
     conn = get_connection()
     c = conn.cursor()
     c.execute("SELECT barkod, marka FROM urun_maliyetleri")
     rows = c.fetchall()
-    conn.close()
     return {r[0]: r[1] for r in rows}
 
 
@@ -119,7 +135,8 @@ def save_maliyet(barkod, urun_adi, marka, maliyet):
             guncelleme = EXCLUDED.guncelleme
     """, (barkod, urun_adi, marka, maliyet, datetime.now().strftime("%Y-%m-%d %H:%M")))
     conn.commit()
-    conn.close()
+    get_maliyet_map.clear()
+    get_marka_map.clear()
 
 
 # ── Markalar ─────────────────────────────────────────────────────
@@ -188,12 +205,12 @@ def delete_gider(gider_id):
 
 # ── Ayarlar ──────────────────────────────────────────────────────
 
+@st.cache_data(ttl=600)
 def get_ayar(anahtar, varsayilan=""):
     conn = get_connection()
     c = conn.cursor()
     c.execute("SELECT deger FROM ayarlar WHERE anahtar = %s", (anahtar,))
     row = c.fetchone()
-    conn.close()
     return row[0] if row else varsayilan
 
 
@@ -205,4 +222,4 @@ def save_ayar(anahtar, deger):
         ON CONFLICT (anahtar) DO UPDATE SET deger = EXCLUDED.deger
     """, (anahtar, deger))
     conn.commit()
-    conn.close()
+    get_ayar.clear()
