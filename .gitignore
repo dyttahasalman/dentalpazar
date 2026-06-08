@@ -1,0 +1,14 @@
+# Veritabani dosyasi (yerel, GitHub'a yuklenmesin)
+*.db
+*.db-journal
+
+# Streamlit secrets (sifre iceriyor, kesinlikle yuklenmesin)
+.streamlit/secrets.toml
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Test dosyalari
+test_rapor.pdf
