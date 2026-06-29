@@ -20,7 +20,6 @@ def giris_yap(kullanici_adi: str, sifre: str):
         (kullanici_adi.strip(),)
     )
     row = c.fetchone()
-    conn.close()
     if not row or not row[5]:
         return None
     ozet, _ = _hash(sifre, row[3])
@@ -45,7 +44,7 @@ def kullanici_olustur(kullanici_adi: str, sifre: str, rol: str = "kullanici") ->
         conn.rollback()
         return False
     finally:
-        conn.close()
+        pass
 
 
 def sifre_degistir(kullanici_id: int, yeni_sifre: str) -> bool:
@@ -63,7 +62,7 @@ def sifre_degistir(kullanici_id: int, yeni_sifre: str) -> bool:
         conn.rollback()
         return False
     finally:
-        conn.close()
+        pass
 
 
 def kullanici_sil(kullanici_id: int):
@@ -71,7 +70,6 @@ def kullanici_sil(kullanici_id: int):
     c = conn.cursor()
     c.execute("DELETE FROM kullanicilar WHERE id = %s", (kullanici_id,))
     conn.commit()
-    conn.close()
 
 
 def aktif_degistir(kullanici_id: int, aktif: bool):
@@ -80,7 +78,6 @@ def aktif_degistir(kullanici_id: int, aktif: bool):
     c.execute("UPDATE kullanicilar SET aktif = %s WHERE id = %s",
               (int(aktif), kullanici_id))
     conn.commit()
-    conn.close()
 
 
 def kullanici_sayisi() -> int:
@@ -88,7 +85,6 @@ def kullanici_sayisi() -> int:
     c = conn.cursor()
     c.execute("SELECT COUNT(*) FROM kullanicilar")
     n = c.fetchone()[0]
-    conn.close()
     return n
 
 
@@ -100,5 +96,4 @@ def tum_kullanicilar():
         "FROM kullanicilar ORDER BY id"
     )
     rows = c.fetchall()
-    conn.close()
     return rows

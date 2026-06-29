@@ -92,7 +92,6 @@ def init_db():
     """)
 
     conn.commit()
-    conn.close()
 
 
 # ── Ürün Maliyetleri ─────────────────────────────────────────────
@@ -100,7 +99,6 @@ def init_db():
 def get_maliyetler():
     conn = get_connection()
     df = pd.read_sql("SELECT * FROM urun_maliyetleri ORDER BY urun_adi", conn)
-    conn.close()
     return df
 
 
@@ -146,7 +144,6 @@ def get_markalar():
     c = conn.cursor()
     c.execute("SELECT id, ad FROM markalar ORDER BY ad")
     rows = c.fetchall()
-    conn.close()
     return rows
 
 
@@ -158,7 +155,6 @@ def add_marka(ad):
     c = conn.cursor()
     c.execute("INSERT INTO markalar (ad) VALUES (%s) ON CONFLICT (ad) DO NOTHING", (ad,))
     conn.commit()
-    conn.close()
 
 
 def delete_marka(marka_id):
@@ -166,7 +162,6 @@ def delete_marka(marka_id):
     c = conn.cursor()
     c.execute("DELETE FROM markalar WHERE id = %s", (marka_id,))
     conn.commit()
-    conn.close()
 
 
 # ── Giderler ─────────────────────────────────────────────────────
@@ -180,7 +175,6 @@ def get_giderler(baslangic=None, bitis=None):
         )
     else:
         df = pd.read_sql("SELECT * FROM giderler ORDER BY tarih DESC", conn)
-    conn.close()
     return df
 
 
@@ -192,7 +186,6 @@ def save_gider(tarih, kategori, aciklama, tutar):
         (str(tarih), kategori, aciklama, tutar)
     )
     conn.commit()
-    conn.close()
 
 
 def delete_gider(gider_id):
@@ -200,7 +193,6 @@ def delete_gider(gider_id):
     c = conn.cursor()
     c.execute("DELETE FROM giderler WHERE id = %s", (gider_id,))
     conn.commit()
-    conn.close()
 
 
 # ── Ayarlar ──────────────────────────────────────────────────────

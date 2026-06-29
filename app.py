@@ -468,7 +468,9 @@ elif sayfa == "💰 Ürün Maliyetleri":
     aktif = aktif_df(df)
 
     # Bu dönemde satılan benzersiz ürünler
-    satilan = aktif.groupby(["barkod", "urun_adi", "kategori"]).agg(
+    satilan = aktif.groupby("barkod").agg(
+        urun_adi=("urun_adi", "first"),
+        kategori=("kategori", "first"),
         adet=("adet", "sum"),
         net_satis=("satis_fiyati", "sum")
     ).reset_index().sort_values("net_satis", ascending=False)
